@@ -659,42 +659,43 @@ def get_route_info(origin, destination, debug=False):
 
 
 def get_weather(lat, lon):
-    """Real current weather via Open-Meteo with debugging enabled."""
+    """Real current weather via OpenWeatherMap using API Key."""
     try:
-        # Using the newest Open-Meteo 'current' parameters
+        api_key = st.secrets.get("OPENWEATHER_KEY", "")
+        if not api_key:
+            return {"description": "API Key Missing", "temp_c": "N/A", "windspeed_kmh": "N/A"}
+            
         url = (
-            f"https://api.open-meteo.com/v1/forecast?"
-            f"latitude={lat}&longitude={lon}&current=temperature_2m,wind_speed_10m,weather_code"
+            f"https://api.openweathermap.org/data/2.5/weather?"
+            f"lat={lat}&lon={lon}&appid={api_key}&units=metric"
         )
-        headers = {"User-Agent": "VenusLogisticsApp/1.0 (contact: YOUR_REAL_EMAIL@gmail.com)"}
         
-        resp = requests.get(url, headers=headers, timeout=5)
+        resp = requests.get(url, timeout=5)
         
-        # 1. If Open-Meteo is actively blocking the Streamlit IP, print the exact reason
         if resp.status_code != 200:
-            st.warning(f"Weather API Blocked: {resp.status_code} - {resp.text}")
+            st.warning(f"Weather API Error: {resp.status_code}")
             return None
             
         data = resp.json()
-        cw = data.get("current")
         
-        # 2. If the API succeeds but the data structure is weird, print the data
-        if not cw:
-            st.warning(f"Unexpected Weather Data: {data}")
-            return None
-            
+        # OpenWeatherMap uses different keys for its data
+        temp = data.get("main", {}).get("temp")
+        wind = data.get("wind", {}).get("speed")
+        desc = data.get("weather", [{}])[0].get("description", "Unknown")
+        
+        # Convert wind from meters/second to km/h
+        wind_kmh = round(wind * 3.6, 1) if wind else "N/A"
+        temp_rounded = round(temp, 1) if temp else "N/A"
+        
         return {
-            "temp_c": cw.get("temperature_2m"),
-            "windspeed_kmh": cw.get("wind_speed_10m"),
-            "description": f"Code {cw.get('weather_code')}" 
+            "temp_c": temp_rounded,
+            "windspeed_kmh": wind_kmh,
+            "description": str(desc).title()
         }
         
     except Exception as e:
-        # 3. If Python crashes (e.g., missing variables or dictionaries), print the crash
-        st.error(f"Weather Python Crash: {e}")
+        st.error(f"Weather Fetch Crash: {e}")
         return None
-
-
 # =====================================================================
 # TRANSCRIPTION / PARSING
 # =====================================================================
