@@ -586,7 +586,7 @@ def get_coordinates(city_name, debug=False):
         query_str = city_name if "USA" in city_name.upper() else f"{city_name}, USA"
         search_query = urllib.parse.quote(query_str)
         url = f"https://nominatim.openstreetmap.org/search?q={search_query}&format=json&limit=1"
-        headers = {"User-Agent": "FreightPricingApp/1.4 (contact: example@example.com)"}
+        headers = {"User-Agent": "VenusLogisticsApp/1.0 (contact: shauryashah00@gmail.com)"}
         resp = requests.get(url, headers=headers, timeout=8)
         time.sleep(1)  # Nominatim usage policy: ~1 request/sec
 
