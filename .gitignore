@@ -1,0 +1,10 @@
+# Secrets and Credentials
+.streamlit/
+secrets.toml
+users.json
+
+# Caches
+*.json
+
+# Mac OS junk files (if applicable)
+.DS_Store
