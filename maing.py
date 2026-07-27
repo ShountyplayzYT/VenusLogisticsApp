@@ -659,28 +659,40 @@ def get_route_info(origin, destination, debug=False):
 
 
 def get_weather(lat, lon):
-    """Real current weather via Open-Meteo (free, no API key needed)."""
+    """Real current weather via Open-Meteo with debugging enabled."""
     try:
+        # Using the newest Open-Meteo 'current' parameters
         url = (
-            f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
-            f"&current_weather=true"
+            f"https://api.open-meteo.com/v1/forecast?"
+            f"latitude={lat}&longitude={lon}&current=temperature_2m,wind_speed_10m,weather_code"
         )
-        # Add your custom headers here so Open-Meteo knows you aren't a spam bot
         headers = {"User-Agent": "VenusLogisticsApp/1.0 (contact: YOUR_REAL_EMAIL@gmail.com)"}
         
-        # Pass the headers into the request
-        resp = requests.get(url, headers=headers, timeout=5).json()
-        cw = resp.get("current_weather")
-        if cw:
-            code = cw.get("weathercode")
-            return {
-                "temp_c": cw.get("temperature"),
-                "windspeed_kmh": cw.get("windspeed"),
-                "description": WEATHER_CODES.get(code, f"Weather code {code}"),
-            }
-    except Exception:
-        pass
-    return None
+        resp = requests.get(url, headers=headers, timeout=5)
+        
+        # 1. If Open-Meteo is actively blocking the Streamlit IP, print the exact reason
+        if resp.status_code != 200:
+            st.warning(f"Weather API Blocked: {resp.status_code} - {resp.text}")
+            return None
+            
+        data = resp.json()
+        cw = data.get("current")
+        
+        # 2. If the API succeeds but the data structure is weird, print the data
+        if not cw:
+            st.warning(f"Unexpected Weather Data: {data}")
+            return None
+            
+        return {
+            "temp_c": cw.get("temperature_2m"),
+            "windspeed_kmh": cw.get("wind_speed_10m"),
+            "description": f"Code {cw.get('weather_code')}" 
+        }
+        
+    except Exception as e:
+        # 3. If Python crashes (e.g., missing variables or dictionaries), print the crash
+        st.error(f"Weather Python Crash: {e}")
+        return None
 
 
 # =====================================================================
