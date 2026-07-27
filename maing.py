@@ -665,7 +665,11 @@ def get_weather(lat, lon):
             f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
             f"&current_weather=true"
         )
-        resp = requests.get(url, timeout=5).json()
+        # Add your custom headers here so Open-Meteo knows you aren't a spam bot
+        headers = {"User-Agent": "VenusLogisticsApp/1.0 (contact: YOUR_REAL_EMAIL@gmail.com)"}
+        
+        # Pass the headers into the request
+        resp = requests.get(url, headers=headers, timeout=5).json()
         cw = resp.get("current_weather")
         if cw:
             code = cw.get("weathercode")
