@@ -31,258 +31,204 @@ GEOCODE_CACHE_PATH = "geocode_cache.json"
 DISTANCE_CACHE_PATH = "distance_cache.json"
 USERS_STORE_PATH = "users.json"
 
-# Fallback login used only when no [credentials] table exists in st.secrets.
-# Add a real table to your secrets.toml to replace this, e.g.:
-#   [credentials]
-#   admin = "some-strong-password"
-#   dispatcher1 = "another-password"
 DEFAULT_CREDENTIALS = {"admin": "trucker2026"}
 
-WEATHER_CODES = {
-    0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-    45: "Fog", 48: "Depositing rime fog",
-    51: "Light drizzle", 53: "Moderate drizzle", 55: "Dense drizzle",
-    61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain",
-    71: "Slight snow", 73: "Moderate snow", 75: "Heavy snow",
-    80: "Slight rain showers", 81: "Moderate rain showers", 82: "Violent rain showers",
-    95: "Thunderstorm", 96: "Thunderstorm w/ hail", 99: "Thunderstorm w/ heavy hail",
+US_STATE_ABBR = {
+    "alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR", "california": "CA",
+    "colorado": "CO", "connecticut": "CT", "delaware": "DE", "florida": "FL", "georgia": "GA",
+    "hawaii": "HI", "idaho": "ID", "illinois": "IL", "indiana": "IN", "iowa": "IA",
+    "kansas": "KS", "kentucky": "KY", "louisiana": "LA", "maine": "ME", "maryland": "MD",
+    "massachusetts": "MA", "michigan": "MI", "minnesota": "MN", "mississippi": "MS",
+    "missouri": "MO", "montana": "MT", "nebraska": "NE", "nevada": "NV",
+    "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY",
+    "north carolina": "NC", "north dakota": "ND", "ohio": "OH", "oklahoma": "OK",
+    "oregon": "OR", "pennsylvania": "PA", "rhode island": "RI", "south carolina": "SC",
+    "south dakota": "SD", "tennessee": "TN", "texas": "TX", "utah": "UT", "vermont": "VT",
+    "virginia": "VA", "washington": "WA", "west virginia": "WV", "wisconsin": "WI",
+    "wyoming": "WY", "district of columbia": "DC",
 }
-# =====================================================================
 
 st.set_page_config(page_title="Line Haul Voice Lookup", page_icon="🚚", layout="wide")
 
 
-# =====================================================================
-# THEME — "overhead highway sign meets midnight dispatch board"
-# =====================================================================
 def inject_css():
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
         :root{
-            --bg-asphalt:#14171c;
-            --bg-panel:#1b212a;
-            --bg-panel-2:#232a33;
-            --border-subtle:#2e3641;
-            --text-primary:#f4f7f2;
-            --text-secondary:#98a3b0;
-            --accent-amber:#ffb020;
-            --accent-amber-dark:#cc8b12;
-            --accent-green:#045d3a;
-            --accent-green-bright:#34d399;
-            --accent-red:#ff5c5c;
-            --font-display:'Oswald', sans-serif;
+            --bg-page:#0f1115;
+            --bg-panel:#161920;
+            --bg-panel-2:#1d212a;
+            --border:#2a2f3a;
+            --text-primary:#e8eaed;
+            --text-secondary:#8b93a1;
+            --accent:#4f7cff;
+            --accent-dark:#3d63d1;
+            --ok:#3fb27f;
+            --warn:#d99a3d;
+            --err:#e05a5a;
             --font-body:'Inter', sans-serif;
             --font-mono:'JetBrains Mono', monospace;
         }
 
         html, body, .stApp{
-            background: var(--bg-asphalt) !important;
+            background: var(--bg-page) !important;
             color: var(--text-primary) !important;
             font-family: var(--font-body) !important;
         }
         [data-testid="stHeader"]{ background: transparent !important; }
-        .block-container{ animation: fadeInUp .5s ease; padding-top: 2rem; }
+        .block-container{ padding-top: 2rem; max-width: 1200px; }
 
-        h1,h2,h3,h4{ font-family: var(--font-display) !important; letter-spacing: .01em; color: var(--text-primary) !important; }
+        h1,h2,h3,h4{ font-family: var(--font-body) !important; font-weight: 600 !important; color: var(--text-primary) !important; }
         p, span, label, .stMarkdown, .stCaption{ color: var(--text-primary); }
         [data-testid="stCaptionContainer"]{ color: var(--text-secondary) !important; }
 
-        /* ---------- Sidebar ---------- */
         [data-testid="stSidebar"]{
-            background: linear-gradient(180deg, #1a1f26 0%, #101318 100%) !important;
-            border-right: 2px solid var(--accent-amber);
+            background: var(--bg-panel) !important;
+            border-right: 1px solid var(--border);
         }
         [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3{
-            color: var(--accent-amber) !important;
+            color: var(--text-secondary) !important;
             text-transform: uppercase;
-            font-size: 1rem;
-            letter-spacing: .08em;
+            font-size: .85rem;
+            letter-spacing: .06em;
         }
 
-        /* ---------- Inputs ---------- */
         input, textarea, [data-baseweb="select"] > div{
             background: var(--bg-panel-2) !important;
             color: var(--text-primary) !important;
-            border: 1px solid var(--border-subtle) !important;
-            border-radius: 8px !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 6px !important;
         }
         input:focus{
-            border-color: var(--accent-amber) !important;
-            box-shadow: 0 0 0 3px rgba(255,176,32,.2) !important;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 2px rgba(79,124,255,.15) !important;
         }
 
-        /* ---------- Buttons ---------- */
         .stButton>button, .stFormSubmitButton>button{
-            background: linear-gradient(135deg, var(--accent-amber), var(--accent-amber-dark)) !important;
-            color: #14171c !important;
-            font-family: var(--font-display) !important;
-            font-weight: 600 !important;
-            text-transform: uppercase;
-            letter-spacing: .04em;
+            background: var(--accent) !important;
+            color: #ffffff !important;
+            font-weight: 500 !important;
             border: none !important;
-            border-radius: 8px !important;
-            padding: .55rem 1.3rem !important;
-            box-shadow: 0 2px 10px rgba(255,176,32,.25);
-            transition: transform .18s ease, box-shadow .18s ease;
+            border-radius: 6px !important;
+            padding: .5rem 1.1rem !important;
+            transition: background .15s ease;
         }
         .stButton>button:hover, .stFormSubmitButton>button:hover{
-            transform: translateY(-2px);
-            box-shadow: 0 8px 22px rgba(255,176,32,.45);
+            background: var(--accent-dark) !important;
         }
-        .stButton>button:active, .stFormSubmitButton>button:active{ transform: translateY(0); }
 
-        /* ---------- Metrics ---------- */
         [data-testid="stMetric"]{
             background: var(--bg-panel);
-            border: 1px solid var(--border-subtle);
-            border-radius: 12px;
-            padding: .9rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: .75rem .9rem;
         }
-        [data-testid="stMetricValue"]{ font-family: var(--font-mono) !important; color: var(--accent-amber) !important; }
-        [data-testid="stMetricLabel"]{ color: var(--text-secondary) !important; text-transform: uppercase; font-size: .72rem; letter-spacing: .08em; }
+        [data-testid="stMetricValue"]{ font-family: var(--font-mono) !important; color: var(--text-primary) !important; font-size: 1.25rem !important; }
+        [data-testid="stMetricLabel"]{ color: var(--text-secondary) !important; text-transform: uppercase; font-size: .68rem; letter-spacing: .06em; }
 
-        /* ---------- Alerts / Spinner ---------- */
-        [data-testid="stAlert"]{ background: var(--bg-panel) !important; border-left: 4px solid var(--accent-amber) !important; border-radius: 8px !important; }
-        [data-testid="stSpinner"] p{ color: var(--accent-amber) !important; font-family: var(--font-mono); }
+        [data-testid="stAlert"]{ background: var(--bg-panel) !important; border-left: 3px solid var(--accent) !important; border-radius: 6px !important; }
+        [data-testid="stSpinner"] p{ color: var(--text-secondary) !important; font-family: var(--font-mono); font-size: .85rem; }
 
-        /* ---------- Bordered containers (cards) ---------- */
         [data-testid="stVerticalBlockBorderWrapper"]{
             background: var(--bg-panel) !important;
-            border: 1px solid var(--border-subtle) !important;
-            border-radius: 14px !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 10px !important;
         }
 
-        /* ---------- Dataframe ---------- */
         [data-testid="stDataFrame"]{
-            border: 1px solid var(--border-subtle);
-            border-radius: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             overflow: hidden;
         }
 
-        hr{ border-color: var(--border-subtle) !important; }
+        hr{ border-color: var(--border) !important; }
 
-        /* ---------- Hero highway sign ---------- */
-        .hero-sign{
-            background: linear-gradient(180deg, var(--accent-green) 0%, #033f28 100%);
-            border: 3px solid var(--text-primary);
-            border-radius: 16px;
-            padding: 1.3rem 2rem;
-            box-shadow: 0 10px 34px rgba(0,0,0,.5);
+        .app-header{
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
-        .hero-sign h1{
+        .app-header h1{
             margin: 0;
-            font-size: 2rem;
-            color: var(--text-primary) !important;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            text-shadow: 0 2px 5px rgba(0,0,0,.4);
+            font-size: 1.5rem;
         }
-        .hero-sign .hero-sub{
-            font-family: var(--font-body);
-            color: rgba(244,247,242,.85);
-            margin-top: .25rem;
-            font-size: .95rem;
-        }
-        .hero-road{
-            height: 6px;
-            margin: .6rem 0 1.4rem 0;
-            border-radius: 3px;
-            opacity: .85;
-            background-image: repeating-linear-gradient(90deg, var(--text-primary) 0 24px, transparent 24px 46px);
-            animation: laneScroll 1.1s linear infinite;
+        .app-header .sub{
+            color: var(--text-secondary);
+            font-size: .9rem;
+            margin-top: .2rem;
         }
 
-        /* ---------- Recording panel ---------- */
         .record-panel{
-            border: 2px dashed var(--accent-amber);
-            border-radius: 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
             padding: 1rem;
             text-align: center;
             margin-bottom: 1rem;
-            animation: pulseGlow 2.2s ease-in-out infinite;
         }
 
-        /* ---------- Badges / pills ---------- */
         .badge{
             display: inline-block;
             font-family: var(--font-mono);
             font-size: .68rem;
             font-weight: 600;
-            padding: .18rem .6rem;
-            border-radius: 20px;
-            letter-spacing: .03em;
+            padding: .18rem .55rem;
+            border-radius: 5px;
+            letter-spacing: .02em;
             text-transform: uppercase;
-            margin: .15rem .3rem .5rem 0;
+            margin: .1rem .3rem .5rem 0;
         }
-        .badge-verified{ background: rgba(52,211,153,.15); color: var(--accent-green-bright); border: 1px solid rgba(52,211,153,.4); }
-        .badge-estimate{ background: rgba(255,176,32,.15); color: var(--accent-amber); border: 1px solid rgba(255,176,32,.4); }
-        .badge-unavailable{ background: rgba(255,92,92,.12); color: var(--accent-red); border: 1px solid rgba(255,92,92,.35); }
+        .badge-verified{ background: rgba(63,178,127,.12); color: var(--ok); border: 1px solid rgba(63,178,127,.3); }
+        .badge-estimate{ background: rgba(217,154,61,.12); color: var(--warn); border: 1px solid rgba(217,154,61,.3); }
+        .badge-unavailable{ background: rgba(224,90,90,.1); color: var(--err); border: 1px solid rgba(224,90,90,.3); }
 
-        /* ---------- Digital readout ---------- */
         .readout-panel{
-            background: #0b0d11;
-            border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            padding: 1.1rem 1.4rem;
+            background: var(--bg-panel-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
             display: flex;
             flex-wrap: wrap;
-            gap: 1.8rem;
-            box-shadow: inset 0 0 22px rgba(0,0,0,.4);
+            gap: 1.6rem;
             margin-bottom: .8rem;
         }
-        .readout-item{ text-align: center; animation: fadeInUp .45s ease; }
+        .readout-item{ text-align: center; }
         .readout-value{
             font-family: var(--font-mono);
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            color: var(--accent-amber);
-            text-shadow: 0 0 14px rgba(255,176,32,.5);
+            color: var(--text-primary);
         }
         .readout-value.avg{
-            font-size: 2.5rem;
-            color: var(--accent-green-bright);
-            text-shadow: 0 0 14px rgba(52,211,153,.5);
+            font-size: 2rem;
+            color: var(--accent);
         }
         .readout-label{
             color: var(--text-secondary);
-            font-size: .68rem;
+            font-size: .65rem;
             text-transform: uppercase;
-            letter-spacing: .1em;
+            letter-spacing: .08em;
             margin-top: .15rem;
         }
 
-        /* ---------- Tabs (login card) ---------- */
-        .login-card [data-baseweb="tab-list"]{ gap: .4rem; border-bottom: 1px solid var(--border-subtle); }
+        .login-card [data-baseweb="tab-list"]{ gap: .4rem; border-bottom: 1px solid var(--border); }
         .login-card [data-baseweb="tab"]{
-            font-family: var(--font-display);
             text-transform: uppercase;
-            font-size: .78rem;
-            letter-spacing: .05em;
+            font-size: .75rem;
+            letter-spacing: .04em;
             color: var(--text-secondary);
         }
-        .login-card [aria-selected="true"]{ color: var(--accent-amber) !important; }
-        .login-card [data-baseweb="tab-highlight"]{ background-color: var(--accent-amber) !important; }
+        .login-card [aria-selected="true"]{ color: var(--accent) !important; }
+        .login-card [data-baseweb="tab-highlight"]{ background-color: var(--accent) !important; }
 
-        /* ---------- Login card ---------- */
         .login-card{
             background: var(--bg-panel);
-            border: 1px solid var(--border-subtle);
-            border-radius: 18px;
-            padding: 1.8rem 1.8rem .4rem 1.8rem;
-            box-shadow: 0 24px 60px rgba(0,0,0,.55);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.6rem 1.6rem .4rem 1.6rem;
             margin-top: 1rem;
-        }
-        .login-error{ animation: shake .4s ease; }
-
-        @keyframes fadeInUp{ from{ opacity:0; transform:translateY(12px);} to{ opacity:1; transform:translateY(0);} }
-        @keyframes laneScroll{ from{ background-position:0 0;} to{ background-position:46px 0;} }
-        @keyframes pulseGlow{ 0%,100%{ box-shadow:0 0 0 rgba(255,176,32,0);} 50%{ box-shadow:0 0 26px rgba(255,176,32,.35);} }
-        @keyframes shake{
-            10%,90%{ transform:translateX(-2px);} 20%,80%{ transform:translateX(4px);}
-            30%,50%,70%{ transform:translateX(-8px);} 40%,60%{ transform:translateX(8px);}
         }
         </style>
         """,
@@ -290,14 +236,13 @@ def inject_css():
     )
 
 
-def render_hero(subtitle="Say a lane, get a rate."):
+def render_header(subtitle="Say a lane, get a rate."):
     st.markdown(
         f"""
-        <div class="hero-sign">
-            <h1>🛣️ Line Haul Voice Lookup</h1>
-            <div class="hero-sub">{subtitle}</div>
+        <div class="app-header">
+            <h1>Line Haul Voice Lookup</h1>
+            <div class="sub">{subtitle}</div>
         </div>
-        <div class="hero-road"></div>
         """,
         unsafe_allow_html=True,
     )
@@ -310,9 +255,6 @@ def badge(text, kind="estimate"):
 inject_css()
 
 
-# =====================================================================
-# DISK CACHE HELPERS (survive app restarts)
-# =====================================================================
 def load_json_cache(path):
     if os.path.exists(path):
         try:
@@ -345,13 +287,11 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "username" not in st.session_state:
     st.session_state.username = None
+if "geocode_failed_this_session" not in st.session_state:
+    st.session_state.geocode_failed_this_session = set()
 
 
-# =====================================================================
-# LOGIN
-# =====================================================================
 def get_credentials_table():
-    """Admin-configured usernames from secrets.toml (or the demo fallback)."""
     creds = st.secrets.get("credentials", None)
     if not creds:
         return DEFAULT_CREDENTIALS
@@ -363,7 +303,6 @@ def using_default_credentials():
 
 
 def load_users():
-    """Self-registered accounts, stored locally in USERS_STORE_PATH."""
     return load_json_cache(USERS_STORE_PATH)
 
 
@@ -403,8 +342,6 @@ def verify_registered_user(email, password):
 
 
 def authenticate(identifier, password):
-    """Checks self-registered accounts (by email) first, then admin
-    usernames configured in secrets.toml. Returns a display name or None."""
     if not identifier or not password:
         return None
 
@@ -420,13 +357,13 @@ def authenticate(identifier, password):
 
 
 def render_login_page():
-    render_hero(subtitle="Dispatcher sign-in required beyond this exit.")
+    render_header(subtitle="Sign in to continue.")
     st.write("")
 
     left, mid, right = st.columns([1, 1.3, 1])
     with mid:
         st.markdown('<div class="login-card">', unsafe_allow_html=True)
-        tab_signin, tab_signup = st.tabs(["🔒 Sign In", "🆕 Create Account"])
+        tab_signin, tab_signup = st.tabs(["Sign In", "Create Account"])
 
         with tab_signin:
             if using_default_credentials():
@@ -437,12 +374,12 @@ def render_login_page():
             with st.form("login_form"):
                 identifier = st.text_input("Email or Username")
                 signin_password = st.text_input("Password", type="password", key="signin_password")
-                signin_submitted = st.form_submit_button("🚚 Sign In")
+                signin_submitted = st.form_submit_button("Sign In")
 
         with tab_signup:
             st.caption(
                 "Creates an account stored locally in `users.json` with a "
-                "hashed password. This is a lightweight store for now, not a "
+                "hashed password. This is a lightweight store, not a "
                 "production auth system — it can reset if the app's storage "
                 "is wiped on redeploy."
             )
@@ -451,7 +388,7 @@ def render_login_page():
                 new_email = st.text_input("Email")
                 new_password = st.text_input("Password", type="password", key="signup_password")
                 confirm_password = st.text_input("Confirm Password", type="password", key="signup_confirm")
-                signup_submitted = st.form_submit_button("✅ Create Account")
+                signup_submitted = st.form_submit_button("Create Account")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -464,8 +401,8 @@ def render_login_page():
         else:
             with mid:
                 st.markdown(
-                    '<div class="badge badge-unavailable login-error">'
-                    "⚠️ Incorrect email/username or password</div>",
+                    '<div class="badge badge-unavailable">'
+                    "Incorrect email/username or password</div>",
                     unsafe_allow_html=True,
                 )
 
@@ -485,7 +422,7 @@ def render_login_page():
         if error:
             with mid:
                 st.markdown(
-                    f'<div class="badge badge-unavailable login-error">⚠️ {error}</div>',
+                    f'<div class="badge badge-unavailable">{error}</div>',
                     unsafe_allow_html=True,
                 )
         else:
@@ -500,12 +437,9 @@ if not st.session_state.authenticated:
     st.stop()
 
 
-# =====================================================================
-# SIDEBAR
-# =====================================================================
 with st.sidebar:
-    badge(f"👤 {st.session_state.username}", kind="verified")
-    if st.button("🚪 Log out", use_container_width=True):
+    badge(f"{st.session_state.username}", kind="verified")
+    if st.button("Log out", use_container_width=True):
         st.session_state.authenticated = False
         st.session_state.username = None
         st.rerun()
@@ -516,7 +450,7 @@ with st.sidebar:
     openai_api_key = st.text_input("OpenAI API Key", value=default_api_key, type="password")
 
     st.divider()
-    st.subheader("📦 Load Details")
+    st.subheader("Load Details")
     st.caption("Used only if no exact historical lane match is found.")
     pickup_date = st.date_input("Pickup Date", value=date.today())
     equipment = st.selectbox("Equipment", ["Dry Van", "Reefer", "Flatbed", "Other"])
@@ -527,10 +461,8 @@ with st.sidebar:
     special_requirements = st.text_input("Special Requirements (optional)", value="")
 
 
-render_hero()
-st.write(
-    "Press the microphone button and say a lane like **'Sayreville to Boston'**."
-)
+render_header()
+st.write("Press the microphone button and say a lane like **'Sayreville to Boston'**.")
 
 st.markdown('<div class="record-panel">', unsafe_allow_html=True)
 audio_bytes = audio_recorder(text="Click to record", icon_size="2x")
@@ -538,7 +470,6 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 
 def get_connection():
-    """Connects to Neon Cloud database using Streamlit Secrets."""
     return psycopg2.connect(
         host=st.secrets["DB_HOST"],
         port=st.secrets.get("DB_PORT", "5432"),
@@ -572,47 +503,74 @@ def safe_get(row_tuple, index):
     return None
 
 
-# =====================================================================
-# GEOCODING / ROUTE / WEATHER (real data only)
-# =====================================================================
-def get_coordinates(city_name, debug=False):
+NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+NOMINATIM_HEADERS = {"User-Agent": "LineHaulVoiceLookup/1.0 (contact: shauryashah00@gmail.com)"}
+_last_nominatim_call = {"t": 0.0}
+
+
+def _nominatim_get(params, max_retries=3):
+    for attempt in range(max_retries):
+        elapsed = time.time() - _last_nominatim_call["t"]
+        wait = 1.1 - elapsed
+        if wait > 0:
+            time.sleep(wait)
+        try:
+            resp = requests.get(NOMINATIM_URL, params=params, headers=NOMINATIM_HEADERS, timeout=8)
+        finally:
+            _last_nominatim_call["t"] = time.time()
+
+        if resp.status_code == 429:
+            time.sleep(2 * (attempt + 1))
+            continue
+        return resp
+    return resp
+
+
+def get_geo_info(city_name, debug=False):
     cache = st.session_state.geocode_cache
     if city_name in cache:
         val = cache[city_name]
         if val:
-            return tuple(val)
+            if isinstance(val, dict):
+                return val
+            return {"lon": val[0], "lat": val[1], "state": None}
+
+    if city_name in st.session_state.geocode_failed_this_session:
+        return None
 
     try:
         query_str = city_name if "USA" in city_name.upper() else f"{city_name}, USA"
-        search_query = urllib.parse.quote(query_str)
-        url = f"https://nominatim.openstreetmap.org/search?q={search_query}&format=json&limit=1"
-        headers = {"User-Agent": "VenusLogisticsApp/1.0 (contact: shauryashah00@gmail.com)"}
-        resp = requests.get(url, headers=headers, timeout=8)
-        time.sleep(1)  # Nominatim usage policy: ~1 request/sec
+        params = {"q": query_str, "format": "json", "limit": 1, "addressdetails": 1}
+        resp = _nominatim_get(params)
 
         if resp.status_code != 200:
             if debug:
-                st.caption(f"⚠️ Geocoding '{city_name}' failed: HTTP {resp.status_code} — {resp.text[:200]}")
+                st.caption(f"Geocoding '{city_name}' failed: HTTP {resp.status_code}")
+            st.session_state.geocode_failed_this_session.add(city_name)
             return None
 
         data = resp.json()
         if data:
-            coords = (float(data[0]["lon"]), float(data[0]["lat"]))
-            cache[city_name] = list(coords)
+            lon = float(data[0]["lon"])
+            lat = float(data[0]["lat"])
+            state = data[0].get("address", {}).get("state")
+            info = {"lon": lon, "lat": lat, "state": state}
+            cache[city_name] = info
             save_json_cache(GEOCODE_CACHE_PATH, cache)
-            return coords
+            return info
         else:
             if debug:
-                st.caption(f"⚠️ Geocoding '{city_name}': Nominatim returned no results for query \"{query_str}\".")
+                st.caption(f"Geocoding '{city_name}': no results for \"{query_str}\".")
+            st.session_state.geocode_failed_this_session.add(city_name)
             return None
     except Exception as e:
         if debug:
-            st.caption(f"⚠️ Geocoding '{city_name}' raised an exception: {e}")
+            st.caption(f"Geocoding '{city_name}' raised an exception: {e}")
+        st.session_state.geocode_failed_this_session.add(city_name)
         return None
 
 
-def get_route_info(origin, destination, debug=False):
-    """Real driving distance (km) and duration (hours) via OSRM, cached."""
+def get_route_info(origin, destination, origin_geo=None, dest_geo=None, debug=False):
     cache = st.session_state.distance_cache
     key = f"{origin}|||{destination}"
     if key in cache:
@@ -620,22 +578,22 @@ def get_route_info(origin, destination, debug=False):
         if isinstance(cached, dict) and cached.get("km"):
             return cached
 
-    orig_coords = get_coordinates(origin, debug=debug)
-    dest_coords = get_coordinates(destination, debug=debug)
-    if not orig_coords or not dest_coords:
+    orig_geo = origin_geo or get_geo_info(origin, debug=debug)
+    dest_geo = dest_geo or get_geo_info(destination, debug=debug)
+    if not orig_geo or not dest_geo:
         return None
 
     try:
         url = (
             f"http://router.project-osrm.org/route/v1/driving/"
-            f"{orig_coords[0]},{orig_coords[1]};{dest_coords[0]},{dest_coords[1]}?overview=false"
+            f"{orig_geo['lon']},{orig_geo['lat']};{dest_geo['lon']},{dest_geo['lat']}?overview=false"
         )
         resp = requests.get(url, timeout=8)
         time.sleep(0.3)
 
         if resp.status_code != 200:
             if debug:
-                st.caption(f"⚠️ Routing failed: HTTP {resp.status_code} — {resp.text[:200]}")
+                st.caption(f"Routing failed: HTTP {resp.status_code}")
             return None
 
         data = resp.json()
@@ -650,55 +608,45 @@ def get_route_info(origin, destination, debug=False):
             return info
         else:
             if debug:
-                st.caption(f"⚠️ Routing: OSRM returned no route. Response: {json.dumps(data)[:200]}")
+                st.caption("Routing: OSRM returned no route.")
             return None
     except Exception as e:
         if debug:
-            st.caption(f"⚠️ Routing raised an exception: {e}")
+            st.caption(f"Routing raised an exception: {e}")
         return None
 
 
 def get_weather(lat, lon):
-    """Real current weather via OpenWeatherMap using API Key."""
     try:
         api_key = st.secrets.get("OPENWEATHER_KEY", "")
         if not api_key:
             return {"description": "API Key Missing", "temp_c": "N/A", "windspeed_kmh": "N/A"}
-            
+
         url = (
             f"https://api.openweathermap.org/data/2.5/weather?"
             f"lat={lat}&lon={lon}&appid={api_key}&units=metric"
         )
-        
         resp = requests.get(url, timeout=5)
-        
+
         if resp.status_code != 200:
-            st.warning(f"Weather API Error: {resp.status_code}")
             return None
-            
+
         data = resp.json()
-        
-        # OpenWeatherMap uses different keys for its data
         temp = data.get("main", {}).get("temp")
         wind = data.get("wind", {}).get("speed")
         desc = data.get("weather", [{}])[0].get("description", "Unknown")
-        
-        # Convert wind from meters/second to km/h
         wind_kmh = round(wind * 3.6, 1) if wind else "N/A"
         temp_rounded = round(temp, 1) if temp else "N/A"
-        
+
         return {
             "temp_c": temp_rounded,
             "windspeed_kmh": wind_kmh,
             "description": str(desc).title()
         }
-        
-    except Exception as e:
-        st.error(f"Weather Fetch Crash: {e}")
+    except Exception:
         return None
-# =====================================================================
-# TRANSCRIPTION / PARSING
-# =====================================================================
+
+
 def transcribe_audio(client, audio_bytes):
     audio_file = io.BytesIO(audio_bytes)
     audio_file.name = "audio.wav"
@@ -725,9 +673,6 @@ def parse_lane_text(client, lane_text):
     return json.loads(text)
 
 
-# =====================================================================
-# DATABASE HELPERS
-# =====================================================================
 def get_known_cities():
     conn = get_connection()
     try:
@@ -760,6 +705,22 @@ def correct_city(heard_name, known_cities):
     return matches[0] if matches else None
 
 
+def rows_to_records(rows):
+    results = []
+    for r in rows:
+        results.append({
+            "Origin": safe_get(r, 0),
+            "Destination": safe_get(r, 1),
+            "Ship Date": safe_get(r, 2),
+            "Line Haul": to_number(safe_get(r, 3)),
+            "Additional Charges": to_number(safe_get(r, 4)),
+            "Carrier Pay": to_number(safe_get(r, 5)),
+            "Net Profit": to_number(safe_get(r, 6)),
+            "%": to_number(safe_get(r, 7)),
+        })
+    return results
+
+
 def query_shipment_details(origin_city, destination_city):
     conn = get_connection()
     try:
@@ -778,20 +739,29 @@ def query_shipment_details(origin_city, destination_city):
             rows = cur.fetchall()
     finally:
         conn.close()
+    return rows_to_records(rows)
 
-    results = []
-    for r in rows:
-        results.append({
-            "Origin": safe_get(r, 0),
-            "Destination": safe_get(r, 1),
-            "Ship Date": safe_get(r, 2),
-            "Line Haul": to_number(safe_get(r, 3)),
-            "Additional Charges": to_number(safe_get(r, 4)),
-            "Carrier Pay": to_number(safe_get(r, 5)),
-            "Net Profit": to_number(safe_get(r, 6)),
-            "%": to_number(safe_get(r, 7)),
-        })
-    return results
+
+def query_state_to_state_details(origin_state_abbr, dest_state_abbr, limit=25):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            safe_pct_col = COL_PCT.replace("%", "%%")
+            query = f'''
+                SELECT "{COL_ORIGIN}", "{COL_DEST}", "{COL_SHIP_DATE}",
+                       "{COL_LINE_HAUL}", "{COL_ADDL_CHARGES}",
+                       "{COL_CARRIER_PAY}", "{COL_NET_PROFIT}", "{safe_pct_col}"
+                FROM "{TABLE_NAME}"
+                WHERE "{COL_ORIGIN}" ILIKE %s
+                  AND "{COL_DEST}" ILIKE %s
+                ORDER BY "{COL_SHIP_DATE}" DESC
+                LIMIT %s
+            '''
+            cur.execute(query, (f"%, {origin_state_abbr}", f"%, {dest_state_abbr}", limit))
+            rows = cur.fetchall()
+    finally:
+        conn.close()
+    return rows_to_records(rows)
 
 
 def get_comparable_loads(origin_city, destination_city, limit=5):
@@ -820,9 +790,43 @@ def get_comparable_loads(origin_city, destination_city, limit=5):
         conn.close()
 
 
-# =====================================================================
-# EXPERT AI PRICING ANALYSIS
-# =====================================================================
+def render_shipment_table(details, heading, badge_text="Verified — Your Database", badge_kind="verified"):
+    badge(badge_text, kind=badge_kind)
+    st.subheader(heading)
+
+    valid_rates = [d["Line Haul"] for d in details if d["Line Haul"] is not None]
+    avg_rate = statistics.mean(valid_rates) if valid_rates else None
+
+    if avg_rate is not None:
+        st.markdown(
+            f"""
+            <div class="readout-panel" style="justify-content:flex-start;">
+                <div class="readout-item">
+                    <div class="readout-value avg">${avg_rate:,.0f}</div>
+                    <div class="readout-label">Avg Line Haul · {len(details)} shipment(s)</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    df = pd.DataFrame(details)
+    display_df = df[[
+        "Origin", "Destination", "Ship Date", "Line Haul", "Additional Charges",
+        "Carrier Pay", "Net Profit", "%",
+    ]].copy()
+
+    for col in ["Line Haul", "Additional Charges", "Carrier Pay", "Net Profit"]:
+        display_df[col] = display_df[col].apply(
+            lambda v: f"${v:,.0f}" if pd.notnull(v) else "—"
+        )
+    display_df["%"] = display_df["%"].apply(
+        lambda v: f"{v:.1f}%" if pd.notnull(v) else "—"
+    )
+
+    st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+
 def build_expert_prompt(origin, destination, load_details, route_info,
                          origin_weather, dest_weather, comparable_loads):
     real_data_lines = []
@@ -961,48 +965,48 @@ Then continue with the full report in the OUTPUT FORMAT above."""
 
 
 def get_ai_expert_rate_prediction(client, origin, destination, load_details):
-    badge("🤖 AI Estimate", kind="estimate")
-    st.subheader("📊 Expert Freight Pricing Analysis")
+    badge("AI Estimate", kind="estimate")
+    st.subheader("Expert Freight Pricing Analysis")
 
     with st.spinner("Calculating real route distance..."):
-        route_info = get_route_info(origin, destination, debug=True)
+        origin_geo = get_geo_info(origin, debug=True)
+        dest_geo = get_geo_info(destination, debug=True)
+        route_info = get_route_info(origin, destination, origin_geo=origin_geo, dest_geo=dest_geo, debug=True)
 
     if route_info:
         miles = route_info["km"] * 0.621371
-        badge("✅ Verified route", kind="verified")
+        badge("Verified route", kind="verified")
         d1, d2 = st.columns(2)
         d1.metric("Distance", f"{route_info['km']:,.1f} km", f"{miles:,.1f} mi")
         d2.metric("Est. Driving Time", f"{route_info['hours']:.1f} hrs")
     else:
-        badge("⚠️ Route unavailable", kind="unavailable")
-        st.warning("⚠️ Could not calculate driving distance for this lane (geocoding failed).")
+        badge("Route unavailable", kind="unavailable")
+        st.warning("Could not calculate driving distance for this lane (geocoding failed).")
 
     with st.spinner("Checking live weather..."):
-        origin_coords = get_coordinates(origin, debug=True)
-        dest_coords = get_coordinates(destination, debug=True)
-        origin_weather = get_weather(origin_coords[1], origin_coords[0]) if origin_coords else None
-        dest_weather = get_weather(dest_coords[1], dest_coords[0]) if dest_coords else None
+        origin_weather = get_weather(origin_geo["lat"], origin_geo["lon"]) if origin_geo else None
+        dest_weather = get_weather(dest_geo["lat"], dest_geo["lon"]) if dest_geo else None
 
     wcol1, wcol2 = st.columns(2)
     with wcol1:
         if origin_weather:
-            badge("✅ Live weather", kind="verified")
+            badge("Live weather", kind="verified")
             st.caption(
                 f"**{origin}** — {origin_weather['description']}, "
                 f"{origin_weather['temp_c']}°C, wind {origin_weather['windspeed_kmh']} km/h"
             )
         else:
-            badge("⚠️ Unavailable", kind="unavailable")
+            badge("Unavailable", kind="unavailable")
             st.caption(f"**{origin}** — no live weather data")
     with wcol2:
         if dest_weather:
-            badge("✅ Live weather", kind="verified")
+            badge("Live weather", kind="verified")
             st.caption(
                 f"**{destination}** — {dest_weather['description']}, "
                 f"{dest_weather['temp_c']}°C, wind {dest_weather['windspeed_kmh']} km/h"
             )
         else:
-            badge("⚠️ Unavailable", kind="unavailable")
+            badge("Unavailable", kind="unavailable")
             st.caption(f"**{destination}** — no live weather data")
 
     with st.spinner("Pulling comparable loads from your database..."):
@@ -1046,7 +1050,7 @@ def get_ai_expert_rate_prediction(client, origin, destination, load_details):
             summary = None
 
     if summary:
-        st.markdown("#### 💰 Quick Estimate")
+        st.markdown("#### Quick Estimate")
         low = summary.get("low_rate", 0) or 0
         avg = summary.get("avg_rate", 0) or 0
         high = summary.get("high_rate", 0) or 0
@@ -1067,8 +1071,7 @@ def get_ai_expert_rate_prediction(client, origin, destination, load_details):
                     <div class="readout-label">High</div>
                 </div>
                 <div class="readout-item">
-                    <div class="readout-value" style="color:var(--accent-green-bright);
-                        text-shadow:0 0 14px rgba(52,211,153,.5);">{conf:.0f}%</div>
+                    <div class="readout-value" style="color:var(--ok);">{conf:.0f}%</div>
                     <div class="readout-label">Confidence</div>
                 </div>
             </div>
@@ -1078,6 +1081,27 @@ def get_ai_expert_rate_prediction(client, origin, destination, load_details):
         st.divider()
 
     st.markdown(report_text)
+
+
+def try_state_level_fallback(origin_text, destination_text):
+    origin_geo = get_geo_info(origin_text, debug=False)
+    dest_geo = get_geo_info(destination_text, debug=False)
+
+    origin_state = origin_geo.get("state") if origin_geo else None
+    dest_state = dest_geo.get("state") if dest_geo else None
+
+    origin_abbr = US_STATE_ABBR.get(origin_state.strip().lower()) if origin_state else None
+    dest_abbr = US_STATE_ABBR.get(dest_state.strip().lower()) if dest_state else None
+
+    if not origin_abbr or not dest_abbr:
+        return None, None, None
+
+    try:
+        state_details = query_state_to_state_details(origin_abbr, dest_abbr)
+    except Exception:
+        state_details = []
+
+    return state_details, origin_abbr, dest_abbr
 
 
 def run_pipeline(client, lane_text, load_details):
@@ -1105,10 +1129,31 @@ def run_pipeline(client, lane_text, load_details):
 
     if problems:
         st.warning(
-            f"⚠️ Couldn't find past shipments containing {', '.join(problems)} "
-            "in your database. Running expert AI pricing analysis instead..."
+            f"Couldn't find past shipments containing {', '.join(problems)} "
+            "in your database. Looking for state-to-state comparable loads..."
         )
-        get_ai_expert_rate_prediction(client, parsed["origin"], parsed["destination"], load_details)
+        with st.spinner("Searching for comparable state-to-state shipments..."):
+            state_details, origin_abbr, dest_abbr = try_state_level_fallback(
+                parsed["origin"], parsed["destination"]
+            )
+
+        col_hist, col_ai = st.columns([2, 1], gap="large")
+        with col_hist:
+            with st.container(border=True):
+                if state_details:
+                    render_shipment_table(
+                        state_details,
+                        f"Comparable Shipments: {origin_abbr} → {dest_abbr}",
+                        badge_text="Verified — Same State-to-State",
+                        badge_kind="verified",
+                    )
+                else:
+                    badge("No comparable data", kind="unavailable")
+                    st.write("No comparable state-to-state shipments were found in your database.")
+
+        with col_ai:
+            with st.container(border=True):
+                get_ai_expert_rate_prediction(client, parsed["origin"], parsed["destination"], load_details)
         return
 
     with st.spinner("Searching shipmentsdb..."):
@@ -1119,8 +1164,29 @@ def run_pipeline(client, lane_text, load_details):
             return
 
     if not details:
-        st.warning("⚠️ No historical records found for this specific lane. Running expert AI pricing analysis instead...")
-        get_ai_expert_rate_prediction(client, parsed["origin"], parsed["destination"], load_details)
+        st.warning("No historical records found for this specific lane. Looking for state-to-state comparable loads...")
+        with st.spinner("Searching for comparable state-to-state shipments..."):
+            state_details, origin_abbr, dest_abbr = try_state_level_fallback(
+                origin_corrected, destination_corrected
+            )
+
+        col_hist, col_ai = st.columns([2, 1], gap="large")
+        with col_hist:
+            with st.container(border=True):
+                if state_details:
+                    render_shipment_table(
+                        state_details,
+                        f"Comparable Shipments: {origin_abbr} → {dest_abbr}",
+                        badge_text="Verified — Same State-to-State",
+                        badge_kind="verified",
+                    )
+                else:
+                    badge("No comparable data", kind="unavailable")
+                    st.write("No comparable state-to-state shipments were found in your database.")
+
+        with col_ai:
+            with st.container(border=True):
+                get_ai_expert_rate_prediction(client, origin_corrected, destination_corrected, load_details)
         return
 
     col_hist, col_ai = st.columns([2, 1], gap="large")
@@ -1133,58 +1199,18 @@ def run_pipeline(client, lane_text, load_details):
 
     with col_hist:
         with st.container(border=True):
-            badge("📚 Verified — Your Database", kind="verified")
-            st.subheader("Historical Matched Lane")
-            st.write(
-                f"**Origin:** {', '.join(distinct_origins)}  \n"
-                f"**Destination:** {', '.join(distinct_destinations)}"
+            render_shipment_table(
+                details,
+                "Historical Matched Lane",
+                badge_text="Verified — Your Database",
+                badge_kind="verified",
             )
-
-            valid_rates = [d["Line Haul"] for d in details if d["Line Haul"] is not None]
-            avg_rate = statistics.mean(valid_rates) if valid_rates else None
-
-            if avg_rate is not None:
-                st.markdown(
-                    f"""
-                    <div class="readout-panel" style="justify-content:flex-start;">
-                        <div class="readout-item">
-                            <div class="readout-value avg">${avg_rate:,.0f}</div>
-                            <div class="readout-label">Avg Line Haul · {len(details)} shipment(s)</div>
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-            else:
-                st.markdown("—")
-
-            st.divider()
-            st.subheader("Matching Shipments (Most Recent First)")
-
-            df = pd.DataFrame(details)
-            display_df = df[[
-                "Ship Date", "Line Haul", "Additional Charges",
-                "Carrier Pay", "Net Profit", "%",
-            ]].copy()
-
-            for col in ["Line Haul", "Additional Charges", "Carrier Pay", "Net Profit"]:
-                display_df[col] = display_df[col].apply(
-                    lambda v: f"${v:,.0f}" if pd.notnull(v) else "—"
-                )
-            display_df["%"] = display_df["%"].apply(
-                lambda v: f"{v:.1f}%" if pd.notnull(v) else "—"
-            )
-
-            st.dataframe(display_df, use_container_width=True, hide_index=True)
 
     with col_ai:
         with st.container(border=True):
             get_ai_expert_rate_prediction(client, geo_origin, geo_destination, load_details)
 
 
-# =====================================================================
-# MAIN EXECUTION
-# =====================================================================
 if audio_bytes:
     st.audio(audio_bytes, format="audio/wav")
 
@@ -1204,7 +1230,7 @@ if audio_bytes:
             st.session_state.audio_hash = audio_hash
             st.session_state.trigger += 1
 
-        st.subheader("🎙️ What I heard")
+        st.subheader("What I heard")
         st.caption("If this is wrong, edit it below and click Reprocess.")
         edited_text = st.text_input(
             "Transcribed lane",
@@ -1212,7 +1238,7 @@ if audio_bytes:
             label_visibility="collapsed",
         )
 
-        if st.button("🔄 Reprocess"):
+        if st.button("Reprocess"):
             st.session_state.trigger += 1
 
         if st.session_state.trigger != st.session_state.last_run_trigger:
