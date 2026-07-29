@@ -444,10 +444,18 @@ with st.sidebar:
         st.session_state.username = None
         st.rerun()
     st.divider()
-
     st.header("Settings")
     default_api_key = st.secrets.get("OPENAI_API_KEY", "")
-    openai_api_key = st.text_input("OpenAI API Key", value=default_api_key, type="password")
+    if default_api_key:
+        openai_api_key = default_api_key
+        badge("OpenAI key loaded from secrets", kind="verified")
+    else:
+        openai_api_key = st.text_input(
+            "OpenAI API Key",
+            value="",
+            type="password",
+            help="Not found in secrets — enter one for this session only.",
+    )
 
     st.divider()
     st.subheader("Load Details")
