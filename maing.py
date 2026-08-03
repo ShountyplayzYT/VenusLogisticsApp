@@ -55,144 +55,311 @@ def inject_css():
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
         :root{
-            --bg-page:#0f1115;
-            --bg-panel:#161920;
-            --bg-panel-2:#1d212a;
-            --border:#2a2f3a;
-            --text-primary:#e8eaed;
-            --text-secondary:#8b93a1;
-            --accent:#4f7cff;
-            --accent-dark:#3d63d1;
-            --ok:#3fb27f;
-            --warn:#d99a3d;
-            --err:#e05a5a;
+            --bg-page:#0a0b0d;
+            --bg-panel:#131519;
+            --bg-panel-2:#1a1d22;
+            --bg-panel-3:#20242b;
+            --border:#23262c;
+            --border-bright:#383e46;
+            --text-primary:#eef0f2;
+            --text-secondary:#838a94;
+            --text-tertiary:#565c66;
+
+            --amber:#ffb300;
+            --amber-dim:#8a6100;
+            --teal:#00c2a8;
+            --teal-dim:#036a5c;
+            --red:#ff5a5a;
+
+            --font-display:'Space Grotesk', sans-serif;
             --font-body:'Inter', sans-serif;
             --font-mono:'JetBrains Mono', monospace;
         }
 
+        @media (prefers-reduced-motion: reduce){
+            *{ animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+        }
+
         html, body, .stApp{
-            background: var(--bg-page) !important;
+            background:
+                radial-gradient(ellipse 900px 500px at 12% -10%, rgba(0,194,168,.08), transparent 60%),
+                radial-gradient(ellipse 900px 500px at 100% 0%, rgba(255,179,0,.06), transparent 55%),
+                var(--bg-page) !important;
             color: var(--text-primary) !important;
             font-family: var(--font-body) !important;
         }
-        [data-testid="stHeader"]{ background: transparent !important; }
-        .block-container{ padding-top: 2rem; max-width: 1200px; }
+        .stApp::before{
+            content:"";
+            position: fixed; inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: .035;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
 
-        h1,h2,h3,h4{ font-family: var(--font-body) !important; font-weight: 600 !important; color: var(--text-primary) !important; }
+        [data-testid="stHeader"]{ background: transparent !important; }
+        .block-container{ padding-top: 1.6rem; max-width: 1180px; }
+
+        ::-webkit-scrollbar{ width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track{ background: var(--bg-page); }
+        ::-webkit-scrollbar-thumb{ background: var(--border-bright); border-radius: 8px; border: 2px solid var(--bg-page); }
+        ::-webkit-scrollbar-thumb:hover{ background: var(--teal-dim); }
+
+        *:focus-visible{ outline: 2px solid var(--teal) !important; outline-offset: 2px; }
+
+        h1,h2,h3,h4{ font-family: var(--font-display) !important; font-weight: 600 !important; color: var(--text-primary) !important; letter-spacing: -.01em; }
+        h3, .stMarkdown h3{ font-size: 1.05rem !important; text-transform: uppercase; letter-spacing: .04em !important; color: var(--text-secondary) !important; font-weight: 600 !important; }
         p, span, label, .stMarkdown, .stCaption{ color: var(--text-primary); }
-        [data-testid="stCaptionContainer"]{ color: var(--text-secondary) !important; }
+        [data-testid="stCaptionContainer"]{ color: var(--text-secondary) !important; font-size: .82rem; }
 
         [data-testid="stSidebar"]{
-            background: var(--bg-panel) !important;
+            background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-page) 100%) !important;
             border-right: 1px solid var(--border);
         }
         [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3{
             color: var(--text-secondary) !important;
             text-transform: uppercase;
-            font-size: .85rem;
-            letter-spacing: .06em;
+            font-size: .78rem;
+            letter-spacing: .1em;
+            font-family: var(--font-mono) !important;
         }
 
-        input, textarea, [data-baseweb="select"] > div{
+        input, textarea, [data-baseweb="select"] > div, [data-baseweb="base-input"]{
             background: var(--bg-panel-2) !important;
             color: var(--text-primary) !important;
-            border: 1px solid var(--border) !important;
-            border-radius: 6px !important;
+            border: 1px solid var(--border-bright) !important;
+            border-radius: 7px !important;
+            transition: border-color .15s ease, box-shadow .15s ease;
         }
-        input:focus{
-            border-color: var(--accent) !important;
-            box-shadow: 0 0 0 2px rgba(79,124,255,.15) !important;
+        input:focus, textarea:focus{
+            border-color: var(--teal) !important;
+            box-shadow: 0 0 0 3px rgba(0,194,168,.14) !important;
+        }
+        [data-testid="stWidgetLabel"] p{
+            color: var(--text-secondary) !important;
+            font-size: .78rem !important;
+            text-transform: uppercase;
+            letter-spacing: .05em;
         }
 
         .stButton>button, .stFormSubmitButton>button{
-            background: var(--accent) !important;
-            color: #ffffff !important;
-            font-weight: 500 !important;
+            background: linear-gradient(180deg, #ffc633, var(--amber)) !important;
+            color: #14100a !important;
+            font-weight: 700 !important;
+            font-family: var(--font-body) !important;
             border: none !important;
-            border-radius: 6px !important;
-            padding: .5rem 1.1rem !important;
-            transition: background .15s ease;
+            border-radius: 7px !important;
+            padding: .55rem 1.2rem !important;
+            letter-spacing: .01em;
+            box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 16px -6px rgba(255,179,0,.55);
+            transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
         }
         .stButton>button:hover, .stFormSubmitButton>button:hover{
-            background: var(--accent-dark) !important;
+            filter: brightness(1.06);
+            transform: translateY(-1px);
+            box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 10px 22px -8px rgba(255,179,0,.65);
         }
+        .stButton>button:active, .stFormSubmitButton>button:active{ transform: translateY(0); }
 
         [data-testid="stMetric"]{
-            background: var(--bg-panel);
+            background: linear-gradient(180deg, var(--bg-panel-3), var(--bg-panel));
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: .75rem .9rem;
+            border-radius: 9px;
+            padding: .8rem .95rem;
+            position: relative;
+            overflow: hidden;
         }
-        [data-testid="stMetricValue"]{ font-family: var(--font-mono) !important; color: var(--text-primary) !important; font-size: 1.25rem !important; }
-        [data-testid="stMetricLabel"]{ color: var(--text-secondary) !important; text-transform: uppercase; font-size: .68rem; letter-spacing: .06em; }
+        [data-testid="stMetric"]::before{
+            content:""; position:absolute; top:0; left:0; right:0; height:2px;
+            background: linear-gradient(90deg, var(--teal), transparent);
+        }
+        [data-testid="stMetricValue"]{ font-family: var(--font-mono) !important; color: var(--text-primary) !important; font-size: 1.3rem !important; font-weight: 600 !important; }
+        [data-testid="stMetricLabel"]{ color: var(--text-secondary) !important; text-transform: uppercase; font-size: .66rem; letter-spacing: .08em; }
+        [data-testid="stMetricDelta"]{ font-family: var(--font-mono) !important; }
 
-        [data-testid="stAlert"]{ background: var(--bg-panel) !important; border-left: 3px solid var(--accent) !important; border-radius: 6px !important; }
-        [data-testid="stSpinner"] p{ color: var(--text-secondary) !important; font-family: var(--font-mono); font-size: .85rem; }
+        [data-testid="stAlert"]{ background: var(--bg-panel) !important; border: 1px solid var(--border) !important; border-left: 3px solid var(--amber) !important; border-radius: 8px !important; }
+        [data-testid="stSpinner"] p{ color: var(--teal) !important; font-family: var(--font-mono); font-size: .82rem; letter-spacing: .02em; }
+        [data-testid="stSpinner"] svg{ color: var(--teal) !important; }
 
         [data-testid="stVerticalBlockBorderWrapper"]{
-            background: var(--bg-panel) !important;
+            background: linear-gradient(180deg, var(--bg-panel), #101216) !important;
             border: 1px solid var(--border) !important;
-            border-radius: 10px !important;
+            border-radius: 12px !important;
+            box-shadow: 0 20px 40px -24px rgba(0,0,0,.7);
         }
 
         [data-testid="stDataFrame"]{
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 9px;
             overflow: hidden;
         }
 
         hr{ border-color: var(--border) !important; }
 
+        /* ---------- header + route strip signature ---------- */
         .app-header{
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
+            padding-bottom: 1.1rem;
+            margin-bottom: 1.6rem;
+            position: relative;
+        }
+        .app-header .eyebrow{
+            font-family: var(--font-mono);
+            font-size: .68rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: .3rem;
         }
         .app-header h1{
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.85rem;
+            display: inline-flex;
+            align-items: baseline;
+            gap: .5rem;
         }
         .app-header .sub{
             color: var(--text-secondary);
-            font-size: .9rem;
-            margin-top: .2rem;
+            font-size: .92rem;
+            margin-top: .25rem;
+            font-family: var(--font-body);
+        }
+        .route-strip{
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            height: 20px;
+        }
+        .route-strip .stop{
+            font-family: var(--font-mono);
+            font-size: .62rem;
+            letter-spacing: .1em;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+        }
+        .route-strip .dot{
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--teal);
+            box-shadow: 0 0 8px var(--teal);
+            flex-shrink: 0;
+        }
+        .route-strip .dot.end{ background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+        .route-strip .track{
+            flex: 1;
+            position: relative;
+            height: 1px;
+            background-image: linear-gradient(90deg, var(--border-bright) 0 6px, transparent 6px 12px);
+            background-size: 12px 1px;
+            overflow: visible;
+        }
+        .route-strip .runner{
+            position: absolute;
+            top: 50%; left: 0;
+            transform: translate(-50%,-50%);
+            font-size: .8rem;
+            animation: run-lane 5.5s linear infinite;
+        }
+        @keyframes run-lane{
+            0%{ left: 0%; opacity: 0; }
+            8%{ opacity: 1; }
+            92%{ opacity: 1; }
+            100%{ left: 100%; opacity: 0; }
+        }
+        .hazard-rule{
+            height: 3px;
+            margin-top: 1rem;
+            border-radius: 2px;
+            background: repeating-linear-gradient(135deg, var(--amber) 0 10px, #0a0b0d 10px 20px);
+            opacity: .55;
         }
 
+        /* ---------- record panel ---------- */
         .record-panel{
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1rem;
+            border-radius: 14px;
+            padding: 1.4rem 1rem 1.1rem 1rem;
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
+            background: radial-gradient(circle at 50% 0%, rgba(0,194,168,.08), var(--bg-panel) 65%);
+            position: relative;
         }
-
-        .badge{
-            display: inline-block;
+        .record-panel .rec-label{
             font-family: var(--font-mono);
             font-size: .68rem;
-            font-weight: 600;
-            padding: .18rem .55rem;
-            border-radius: 5px;
-            letter-spacing: .02em;
+            letter-spacing: .16em;
             text-transform: uppercase;
-            margin: .1rem .3rem .5rem 0;
+            color: var(--text-tertiary);
+            margin-bottom: .8rem;
         }
-        .badge-verified{ background: rgba(63,178,127,.12); color: var(--ok); border: 1px solid rgba(63,178,127,.3); }
-        .badge-estimate{ background: rgba(217,154,61,.12); color: var(--warn); border: 1px solid rgba(217,154,61,.3); }
-        .badge-unavailable{ background: rgba(224,90,90,.1); color: var(--err); border: 1px solid rgba(224,90,90,.3); }
+        .record-panel .rec-ring{
+            width: 64px; height: 64px;
+            margin: 0 auto .6rem auto;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .record-panel .rec-ring::before, .record-panel .rec-ring::after{
+            content: "";
+            position: absolute; inset: 0;
+            border-radius: 50%;
+            border: 1px solid rgba(0,194,168,.45);
+            animation: pulse-ring 2.6s ease-out infinite;
+        }
+        .record-panel .rec-ring::after{ animation-delay: 1.3s; }
+        @keyframes pulse-ring{
+            0%{ transform: scale(.55); opacity: .8; }
+            100%{ transform: scale(1.9); opacity: 0; }
+        }
+        .record-panel audio{ margin-top: .8rem; width: 100%; }
 
+        /* ---------- badges: manifest stamp style ---------- */
+        .badge{
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-family: var(--font-mono);
+            font-size: .66rem;
+            font-weight: 600;
+            padding: .22rem .6rem .22rem .5rem;
+            border-radius: 4px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            margin: .1rem .35rem .6rem 0;
+            border: 1px dashed;
+        }
+        .badge::before{
+            content: "";
+            width: 5px; height: 5px; border-radius: 50%;
+            background: currentColor;
+        }
+        .badge-verified{ background: rgba(0,194,168,.08); color: var(--teal); border-color: rgba(0,194,168,.4); }
+        .badge-estimate{ background: rgba(255,179,0,.08); color: var(--amber); border-color: rgba(255,179,0,.4); }
+        .badge-unavailable{ background: rgba(255,90,90,.08); color: var(--red); border-color: rgba(255,90,90,.4); }
+
+        /* ---------- panel top accent bars ---------- */
+        .panel-topbar{
+            height: 3px;
+            margin: -1rem -1rem 1rem -1rem;
+            border-radius: 11px 11px 0 0;
+        }
+        .panel-topbar.teal{ background: linear-gradient(90deg, var(--teal), transparent 130%); box-shadow: 0 0 14px -2px var(--teal); }
+        .panel-topbar.amber{ background: linear-gradient(90deg, var(--amber), transparent 130%); box-shadow: 0 0 14px -2px var(--amber); }
+
+        /* ---------- readout / ledger digits ---------- */
         .readout-panel{
-            background: var(--bg-panel-2);
+            background:
+                linear-gradient(180deg, var(--bg-panel-3), var(--bg-panel-2));
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1rem 1.2rem;
+            border-radius: 11px;
+            padding: 1.1rem 1.3rem;
             display: flex;
             flex-wrap: wrap;
-            gap: 1.6rem;
-            margin-bottom: .8rem;
+            gap: 1.8rem;
+            margin-bottom: .9rem;
+            position: relative;
         }
         .readout-item{ text-align: center; }
         .readout-value{
@@ -200,35 +367,100 @@ def inject_css():
             font-size: 1.6rem;
             font-weight: 700;
             color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
         }
         .readout-value.avg{
-            font-size: 2rem;
-            color: var(--accent);
+            font-size: 2.1rem;
+            color: var(--teal);
+            text-shadow: 0 0 22px rgba(0,194,168,.4);
         }
         .readout-label{
             color: var(--text-secondary);
-            font-size: .65rem;
+            font-size: .64rem;
             text-transform: uppercase;
-            letter-spacing: .08em;
-            margin-top: .15rem;
+            letter-spacing: .09em;
+            margin-top: .2rem;
+            font-family: var(--font-mono);
+        }
+
+        /* ---------- login ---------- */
+        .login-hero{
+            background:
+                radial-gradient(ellipse 500px 300px at 30% 0%, rgba(0,194,168,.14), transparent 65%),
+                radial-gradient(ellipse 500px 300px at 90% 100%, rgba(255,179,0,.10), transparent 60%),
+                linear-gradient(180deg, var(--bg-panel), #0d0f13);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.2rem 2rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .login-hero .eyebrow{
+            font-family: var(--font-mono);
+            font-size: .68rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: .6rem;
+        }
+        .login-hero h2{
+            font-size: 1.7rem !important;
+            text-transform: none !important;
+            letter-spacing: -.01em !important;
+            color: var(--text-primary) !important;
+            margin: 0 0 .7rem 0;
+        }
+        .login-hero p{
+            color: var(--text-secondary);
+            font-size: .92rem;
+            line-height: 1.55;
+            max-width: 34ch;
+        }
+        .login-hero .stat-row{
+            display: flex;
+            gap: 1.6rem;
+            margin-top: 1.6rem;
+            padding-top: 1.4rem;
+            border-top: 1px solid var(--border);
+        }
+        .login-hero .stat-num{
+            font-family: var(--font-mono);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--amber);
+        }
+        .login-hero .stat-lbl{
+            font-size: .64rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: .07em;
         }
 
         .login-card [data-baseweb="tab-list"]{ gap: .4rem; border-bottom: 1px solid var(--border); }
         .login-card [data-baseweb="tab"]{
             text-transform: uppercase;
-            font-size: .75rem;
-            letter-spacing: .04em;
+            font-size: .74rem;
+            letter-spacing: .06em;
             color: var(--text-secondary);
+            font-family: var(--font-mono);
         }
-        .login-card [aria-selected="true"]{ color: var(--accent) !important; }
-        .login-card [data-baseweb="tab-highlight"]{ background-color: var(--accent) !important; }
+        .login-card [aria-selected="true"]{ color: var(--teal) !important; }
+        .login-card [data-baseweb="tab-highlight"]{ background-color: var(--teal) !important; }
 
         .login-card{
-            background: var(--bg-panel);
+            background: linear-gradient(180deg, var(--bg-panel), #101216);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.6rem 1.6rem .4rem 1.6rem;
-            margin-top: 1rem;
+            border-radius: 16px;
+            padding: 1.8rem 1.8rem .5rem 1.8rem;
+            box-shadow: 0 24px 48px -28px rgba(0,0,0,.75);
+            position: relative;
+            overflow: hidden;
+        }
+        .login-card::before{
+            content:""; position:absolute; top:0; left:0; right:0; height:3px;
+            background: linear-gradient(90deg, var(--teal), var(--amber));
         }
         </style>
         """,
@@ -240,8 +472,16 @@ def render_header(subtitle="Say a lane, get a rate."):
     st.markdown(
         f"""
         <div class="app-header">
-            <h1>Line Haul Voice Lookup</h1>
+            <div class="eyebrow">Dispatch Terminal</div>
+            <h1>Line&nbsp;Haul Voice Lookup</h1>
             <div class="sub">{subtitle}</div>
+            <div class="route-strip">
+                <span class="stop">ORIGIN</span>
+                <span class="dot"></span>
+                <div class="track"><span class="runner">🚚</span></div>
+                <span class="dot end"></span>
+                <span class="stop">DESTINATION</span>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -250,6 +490,10 @@ def render_header(subtitle="Say a lane, get a rate."):
 
 def badge(text, kind="estimate"):
     st.markdown(f'<span class="badge badge-{kind}">{text}</span>', unsafe_allow_html=True)
+
+
+def panel_topbar(kind="teal"):
+    st.markdown(f'<div class="panel-topbar {kind}"></div>', unsafe_allow_html=True)
 
 
 inject_css()
@@ -357,11 +601,56 @@ def authenticate(identifier, password):
 
 
 def render_login_page():
-    render_header(subtitle="Sign in to continue.")
+    st.markdown(
+        """
+        <div class="app-header">
+            <div class="eyebrow">Dispatch Terminal</div>
+            <h1>Line&nbsp;Haul Voice Lookup</h1>
+            <div class="sub">Sign in to continue.</div>
+        </div>
+        <div class="hazard-rule"></div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.write("")
 
-    left, mid, right = st.columns([1, 1.3, 1])
-    with mid:
+    hero, form = st.columns([1, 1], gap="large")
+    with hero:
+        st.markdown(
+            """
+            <div class="login-hero">
+                <div class="eyebrow">Say a lane. Get a rate.</div>
+                <h2>Voice in, verified rate out.</h2>
+                <p>Speak an origin and destination. The terminal checks your own
+                shipment history first — and only reaches for an AI estimate
+                when no verified record exists.</p>
+                <div class="route-strip">
+                    <span class="stop">ORIGIN</span>
+                    <span class="dot"></span>
+                    <div class="track"><span class="runner">🚚</span></div>
+                    <span class="dot end"></span>
+                    <span class="stop">DEST</span>
+                </div>
+                <div class="stat-row">
+                    <div>
+                        <div class="stat-num">DB</div>
+                        <div class="stat-lbl">Verified first</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">AI</div>
+                        <div class="stat-lbl">Fallback estimate</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">Live</div>
+                        <div class="stat-lbl">Route + weather</div>
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with form:
         st.markdown('<div class="login-card">', unsafe_allow_html=True)
         tab_signin, tab_signup = st.tabs(["Sign In", "Create Account"])
 
@@ -399,7 +688,7 @@ def render_login_page():
             st.session_state.username = display_name
             st.rerun()
         else:
-            with mid:
+            with form:
                 st.markdown(
                     '<div class="badge badge-unavailable">'
                     "Incorrect email/username or password</div>",
@@ -420,7 +709,7 @@ def render_login_page():
             error = "An account with that email already exists — sign in instead."
 
         if error:
-            with mid:
+            with form:
                 st.markdown(
                     f'<div class="badge badge-unavailable">{error}</div>',
                     unsafe_allow_html=True,
@@ -470,9 +759,18 @@ with st.sidebar:
 
 
 render_header()
+st.markdown('<div class="hazard-rule"></div>', unsafe_allow_html=True)
+st.write("")
 st.write("Press the microphone button and say a lane like **'Sayreville to Boston'**.")
 
-st.markdown('<div class="record-panel">', unsafe_allow_html=True)
+st.markdown(
+    """
+    <div class="record-panel">
+        <div class="rec-label">● Awaiting Voice Input</div>
+        <div class="rec-ring"></div>
+    """,
+    unsafe_allow_html=True,
+)
 audio_bytes = audio_recorder(text="Click to record", icon_size="2x")
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -799,6 +1097,7 @@ def get_comparable_loads(origin_city, destination_city, limit=5):
 
 
 def render_shipment_table(details, heading, badge_text="Verified — Your Database", badge_kind="verified"):
+    panel_topbar("teal" if badge_kind == "verified" else "amber")
     badge(badge_text, kind=badge_kind)
     st.subheader(heading)
 
@@ -973,6 +1272,7 @@ Then continue with the full report in the OUTPUT FORMAT above."""
 
 
 def get_ai_expert_rate_prediction(client, origin, destination, load_details):
+    panel_topbar("amber")
     badge("AI Estimate", kind="estimate")
     st.subheader("Expert Freight Pricing Analysis")
 
@@ -1156,6 +1456,7 @@ def run_pipeline(client, lane_text, load_details):
                         badge_kind="verified",
                     )
                 else:
+                    panel_topbar("teal")
                     badge("No comparable data", kind="unavailable")
                     st.write("No comparable state-to-state shipments were found in your database.")
 
@@ -1189,6 +1490,7 @@ def run_pipeline(client, lane_text, load_details):
                         badge_kind="verified",
                     )
                 else:
+                    panel_topbar("teal")
                     badge("No comparable data", kind="unavailable")
                     st.write("No comparable state-to-state shipments were found in your database.")
 
